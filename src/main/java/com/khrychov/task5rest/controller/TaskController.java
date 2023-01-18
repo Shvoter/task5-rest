@@ -5,9 +5,7 @@ import com.khrychov.task5rest.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -27,29 +25,21 @@ public class TaskController {
     @ResponseStatus(HttpStatus.CREATED)
     public RestResponse createTask(
             @PathVariable(name = "todo_id") Long id,
-            @Valid @RequestBody TaskSaveDto dto,
-            BindingResult bindingResult
+            @Valid @RequestBody TaskSaveDto dto
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, bindingResult.getAllErrors().toString());
-        }
         return new RestResponse(taskService.create(dto, id).toString());
     }
 
     @GetMapping("/{id}")
-    public TaskDetailsDto getTask(@PathVariable Long id) {
-        return taskService.getById(id);
+    public TaskDetailsDto getTask(@PathVariable("todo_id") Long toDoId, @PathVariable Long id) {
+        return taskService.findByIdAndToDoDataId(id, toDoId);
     }
 
     @PutMapping("/{id}")
     public RestResponse updateTask(
             @PathVariable Long id,
-            @Valid @RequestBody TaskUpdateDto dto,
-            BindingResult bindingResult
+            @Valid @RequestBody TaskUpdateDto dto
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, bindingResult.getAllErrors().toString());
-        }
         taskService.update(id, dto);
         return new RestResponse("updated task with id " + id);
     }
@@ -62,12 +52,8 @@ public class TaskController {
     @PostMapping("/search")
     public List<TaskDetailsDto> getTasksByPriorityAndState(
             @PathVariable(name = "todo_id") Long id,
-            @Valid @RequestBody TaskSearchDto taskSearchDto,
-            BindingResult bindingResult
+            @Valid @RequestBody TaskSearchDto taskSearchDto
     ) {
-        if(bindingResult.hasErrors()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, bindingResult.getAllErrors().toString());
-        }
         return taskService.findByPriorityAndStateAndToDoDataId(
                 taskSearchDto.getState(),
                 taskSearchDto.getPriority(),

@@ -10,11 +10,11 @@ public interface TaskService {
 
     Long create(TaskSaveDto taskSaveDto, Long toDoId);
 
-    TaskDetailsDto getById(Long id);
-
     void update(Long id, TaskUpdateDto taskUpdateDto);
 
     void delete(Long id);
+
+    TaskDetailsDto findByIdAndToDoDataId(Long id, Long toDoId);
 
     List<TaskDetailsDto> findAllByToDoDataId(Long id);
 

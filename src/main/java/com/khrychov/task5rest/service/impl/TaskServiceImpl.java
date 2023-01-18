@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,8 +32,7 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public Long create(TaskSaveDto taskSaveDto, Long toDoId) {
-        ToDoData toDoData = toDoRepository.findById(toDoId).orElseThrow(
-                () -> new NullEntityReferenceException("Todo with id " + toDoId + " not found"));
+        ToDoData toDoData = UnboxOptional(toDoRepository.findById(toDoId), toDoId, ToDoData.class);
 
         TaskData taskData = new TaskData();
         taskData.setTitle(taskSaveDto.getTitle());
@@ -44,33 +44,22 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.save(taskData).getId();
     }
 
-    @Override
-    public TaskDetailsDto getById(Long id) {
-        TaskData taskData = taskRepository.findById(id).orElseThrow(
-                () -> new NullEntityReferenceException("Task with id " + id + " not found"));
-        return new TaskDetailsDto(taskData);
-    }
-
     @Transactional
     @Override
     public void update(Long id, TaskUpdateDto taskUpdateDto) {
         if (!isFilled(taskUpdateDto)) {
             return;
         }
-
-        TaskData taskData = taskRepository.findById(id).orElseThrow(
-                () -> new NullEntityReferenceException("Task with id " + id + " not found"));
+        TaskData taskData = UnboxOptional(taskRepository.findById(id), id, TaskData.class);
+        ToDoData toDoData;
 
         if (taskUpdateDto.getToDoId() != null) {
-            ToDoData toDoData = toDoRepository.findById(taskUpdateDto.getToDoId()).orElseThrow(
-                    () -> new NullEntityReferenceException("ToDo with id " + id + " not found"));
+            toDoData = UnboxOptional(toDoRepository.findById(taskUpdateDto.getToDoId()), id, ToDoData.class);
             taskData.setToDoData(toDoData);
         }
-
         if (taskUpdateDto.getPriority() != null) {
             taskData.setPriority(taskUpdateDto.getPriority());
         }
-
         if (taskUpdateDto.getState() != null) {
             taskData.setState(taskUpdateDto.getState());
         }
@@ -101,9 +90,21 @@ public class TaskServiceImpl implements TaskService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public TaskDetailsDto findByIdAndToDoDataId(Long id, Long toDoId) {
+        TaskData taskData = UnboxOptional(taskRepository.findByIdAndToDoDataId(id, toDoId), id, TaskData.class);
+        return new TaskDetailsDto(taskData);
+    }
+
     private boolean isFilled(TaskUpdateDto taskUpdateDto) {
         return taskUpdateDto.getState() != null ||
                 taskUpdateDto.getPriority() != null ||
                 taskUpdateDto.getToDoId() != null;
+    }
+
+    private <T> T UnboxOptional(Optional<T> data, Long id, Class<T> aClass) {
+        return data.orElseThrow(
+                () -> new NullEntityReferenceException(
+                        aClass.getSimpleName().replace("Data", "")+ " with id " + id + " not found"));
     }
 }
