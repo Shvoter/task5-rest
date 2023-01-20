@@ -10,10 +10,10 @@ import lombok.Setter;
 @NoArgsConstructor
 public class TaskUpdateDto {
 
-    @Size(max = 40, message = "task title is too long")
+    @Size(max = 40, message = "task state is too long")
     private String state;
 
-    @Size(max = 40, message = "task title is too long")
+    @Size(max = 40, message = "task priority is too long")
     private String priority;
 
     private Long toDoId;

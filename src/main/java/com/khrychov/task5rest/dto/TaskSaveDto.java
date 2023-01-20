@@ -5,8 +5,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
 public class TaskSaveDto {
 
@@ -14,12 +16,12 @@ public class TaskSaveDto {
     @Size(max = 40, message = "task title is too long")
     private String title;
 
-    @NotNull
-    @Size(max = 40, message = "task title is too long")
+    @NotNull(message = "task state should not be null")
+    @Size(max = 40, message = "task state is too long")
     private String state;
 
-    @NotNull
-    @Size(max = 40, message = "task title is too long")
+    @NotNull(message = "task priority should not be null")
+    @Size(max = 40, message = "task priority is too long")
     private String priority;
 
 }

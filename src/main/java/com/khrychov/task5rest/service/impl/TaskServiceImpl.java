@@ -10,6 +10,7 @@ import com.khrychov.task5rest.repository.TaskRepository;
 import com.khrychov.task5rest.repository.ToDoRepository;
 import com.khrychov.task5rest.service.TaskService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -70,7 +71,11 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void delete(Long id) {
-        taskRepository.deleteById(id);
+        try {
+            taskRepository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NullEntityReferenceException("Task with id " + id + " not found");
+        }
     }
 
     @Override

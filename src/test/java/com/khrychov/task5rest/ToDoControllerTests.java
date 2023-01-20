@@ -26,11 +26,12 @@ public class ToDoControllerTests {
 
     @Test
     public void getAllToDosGetMappingTest() throws Exception {
+        String url = "/api/todos";
         List<ToDoDetailsDto> toDoDetailsDtos = toDoRepository.findAll().stream()
                 .map(ToDoDetailsDto::new)
                 .toList();
 
-        mvc.perform(MockMvcRequestBuilders.get("/api/todos"))
+        mvc.perform(MockMvcRequestBuilders.get(url))
                 .andExpect(status().isOk())
                 .andExpect(toDoData("$[0]", toDoDetailsDtos.get(0)))
                 .andExpect(toDoData("$[1]", toDoDetailsDtos.get(1)))
@@ -39,9 +40,11 @@ public class ToDoControllerTests {
 
     @Test
     public void getToDoByExistIdGetMappingTest() throws Exception {
-        ToDoDetailsDto toDoDetailsDto = new ToDoDetailsDto(toDoRepository.findById(1L).get());
+        long ExistId = 1;
+        String url = "/api/todos/" + ExistId;
+        ToDoDetailsDto toDoDetailsDto = new ToDoDetailsDto(toDoRepository.findById(ExistId).get());
 
-        mvc.perform(MockMvcRequestBuilders.get("/api/todos/1"))
+        mvc.perform(MockMvcRequestBuilders.get(url))
                 .andExpect(status().isOk())
                 .andExpect(toDoData("$", toDoDetailsDto));
     }
@@ -49,8 +52,9 @@ public class ToDoControllerTests {
     @Test
     public void getToDoByNotExistIdGetMappingTest() throws Exception {
         long notExistId = 6L;
+        String url = "/api/todos/" + notExistId;
 
-        mvc.perform(MockMvcRequestBuilders.get("/api/todos/" + notExistId))
+        mvc.perform(MockMvcRequestBuilders.get(url))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.result").value("Todo with id " + notExistId + " not found"));
     }

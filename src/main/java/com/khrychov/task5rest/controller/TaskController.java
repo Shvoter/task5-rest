@@ -45,8 +45,9 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public RestResponse deleteTask(@PathVariable Long id) {
         taskService.delete(id);
+        return new RestResponse("deleted task with id " + id);
     }
 
     @PostMapping("/search")

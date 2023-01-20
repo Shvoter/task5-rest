@@ -11,17 +11,17 @@ import lombok.Setter;
 @NoArgsConstructor
 public class TaskSearchDto {
 
-    @NotNull
+    @NotNull(message = "task state should not be null")
     @Size(max = 40, message = "task title is too long")
     private String state;
 
-    @NotNull
-    @Size(max = 40, message = "task title is too long")
+    @NotNull(message = "task priority should not be null")
+    @Size(max = 40, message = "task priority is too long")
     private String priority;
 
-    @NotNull
+    @NotNull(message = "page should not be null")
     private int page;
 
-    @NotNull
+    @NotNull(message = "size should not be null")
     private int size;
 }
