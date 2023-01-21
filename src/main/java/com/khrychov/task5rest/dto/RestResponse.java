@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.Value;
 
 @Value
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 @Getter
 @AllArgsConstructor
 public class RestResponse {

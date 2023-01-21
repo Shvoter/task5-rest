@@ -1,13 +1,14 @@
 package com.khrychov.task5rest.dto;
 
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
+@ToString
+@EqualsAndHashCode
 public class TaskUpdateDto {
 
     @Size(max = 40, message = "task state is too long")

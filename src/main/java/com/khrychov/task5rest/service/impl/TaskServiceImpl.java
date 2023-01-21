@@ -5,6 +5,7 @@ import com.khrychov.task5rest.data.ToDoData;
 import com.khrychov.task5rest.dto.TaskDetailsDto;
 import com.khrychov.task5rest.dto.TaskSaveDto;
 import com.khrychov.task5rest.dto.TaskUpdateDto;
+import com.khrychov.task5rest.exception.EmptyBodyRequestException;
 import com.khrychov.task5rest.exception.NullEntityReferenceException;
 import com.khrychov.task5rest.repository.TaskRepository;
 import com.khrychov.task5rest.repository.ToDoRepository;
@@ -49,8 +50,9 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void update(Long id, TaskUpdateDto taskUpdateDto) {
         if (!isFilled(taskUpdateDto)) {
-            return;
+            throw new EmptyBodyRequestException("you did not change any data");
         }
+
         TaskData taskData = UnboxOptional(taskRepository.findById(id), id, TaskData.class);
         ToDoData toDoData;
 

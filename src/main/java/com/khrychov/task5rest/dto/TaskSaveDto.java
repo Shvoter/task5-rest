@@ -10,6 +10,8 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
+@EqualsAndHashCode
 public class TaskSaveDto {
 
     @NotBlank(message = "task title is required")

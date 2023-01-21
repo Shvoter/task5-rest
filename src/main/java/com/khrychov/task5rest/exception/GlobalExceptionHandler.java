@@ -21,6 +21,13 @@ public class GlobalExceptionHandler {
                 .body(new RestResponse(e.getMessage()));
     }
 
+    @ExceptionHandler(EmptyBodyRequestException.class)
+    public ResponseEntity<?> handleEmptyBodyRequestException(EmptyBodyRequestException e) {
+        return ResponseEntity
+                .badRequest()
+                .body(new RestResponse(e.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         Map<String, String> errorMessage = e.getBindingResult().getFieldErrors().stream()

@@ -1,13 +1,19 @@
 package com.khrychov.task5rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.khrychov.task5rest.data.TaskData;
 import com.khrychov.task5rest.dto.TaskDetailsDto;
 import com.khrychov.task5rest.dto.TaskSaveDto;
+import com.khrychov.task5rest.dto.TaskSearchDto;
+import com.khrychov.task5rest.dto.TaskUpdateDto;
 import com.khrychov.task5rest.repository.TaskRepository;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -58,10 +64,15 @@ public class TaskControllerTests {
         getHttpRequest(HttpMethod.POST, url, taskSaveDto)
                 .andExpect(status().isCreated())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.result").exists());
+
+        List<TaskData> allTasks = taskRepository.findAll();
+        TaskData taskData = allTasks.get(allTasks.size() - 1);
+        TaskSaveDto savedDto = new TaskSaveDto(taskData.getTitle(), taskData.getState(), taskData.getPriority());
+
+        Assertions.assertEquals(taskSaveDto, savedDto);
     }
 
     @Test
-    @Transactional
     public void createTaskWithBlankTitleTest() throws Exception {
         long toDoId = 3;
         String url = "/api/todos/" + toDoId + "/tasks";
@@ -78,7 +89,6 @@ public class TaskControllerTests {
     }
 
     @Test
-    @Transactional
     public void createTaskWithToLongTitleTest() throws Exception {
         long toDoId = 3;
         String url = "/api/todos/" + toDoId + "/tasks";
@@ -93,7 +103,6 @@ public class TaskControllerTests {
     }
 
     @Test
-    @Transactional
     public void createTaskWithNullStateTest() throws Exception {
         long toDoId = 3;
         String url = "/api/todos/" + toDoId + "/tasks";
@@ -110,7 +119,6 @@ public class TaskControllerTests {
     }
 
     @Test
-    @Transactional
     public void createTaskWithToLongStateTest() throws Exception {
         long toDoId = 3;
         String url = "/api/todos/" + toDoId + "/tasks";
@@ -125,7 +133,6 @@ public class TaskControllerTests {
     }
 
     @Test
-    @Transactional
     public void createTaskWithNullPriorityTest() throws Exception {
         long toDoId = 3;
         String url = "/api/todos/" + toDoId + "/tasks";
@@ -142,7 +149,6 @@ public class TaskControllerTests {
     }
 
     @Test
-    @Transactional
     public void createTaskWithToLongPriorityTest() throws Exception {
         long toDoId = 3;
         String url = "/api/todos/" + toDoId + "/tasks";
@@ -205,7 +211,73 @@ public class TaskControllerTests {
                         "$.result").value("Task with id " + notExistId + " not found"));
     }
 
+    @Test
+    @Transactional
+    public void updateTaskPutMappingTest() throws Exception {
+        long toDoId = 3;
+        long id = 26;
+        String url = "/api/todos/" + toDoId + "/tasks/" + id;
 
+        TaskUpdateDto taskUpdateDto = new TaskUpdateDto("test state", "test priority", 2L);
+
+        getHttpRequest(HttpMethod.PUT, url, taskUpdateDto)
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.result").value("updated task with id " + id));
+
+        TaskDetailsDto taskDetailsDto = new TaskDetailsDto(taskRepository.findByIdAndToDoDataId(id, 2L).get());
+        Assertions.assertEquals(taskUpdateDto.getState(), taskDetailsDto.getState());
+        Assertions.assertEquals(taskUpdateDto.getPriority(), taskDetailsDto.getPriority());
+        Assertions.assertEquals(taskUpdateDto.getToDoId(), taskDetailsDto.getToDoId());
+    }
+
+    @Test
+    public void updateTaskWithNotExistId() throws  Exception {
+        long toDoId = 3;
+        long id = 50;
+        String url = "/api/todos/" + toDoId + "/tasks/" + id;
+
+        TaskUpdateDto taskUpdateDto = new TaskUpdateDto("test state", "test priority", 2L);
+
+        getHttpRequest(HttpMethod.PUT, url, taskUpdateDto)
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.result").value("Task with id " + id + " not found"));
+    }
+
+    @Test
+    public void updateTaskWithEmptyBodyRequest() throws Exception {
+        long toDoId = 3;
+        long id = 26;
+        String url = "/api/todos/" + toDoId + "/tasks/" + id;
+
+        TaskUpdateDto taskUpdateDto = new TaskUpdateDto();
+
+        getHttpRequest(HttpMethod.PUT, url, taskUpdateDto)
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.result").value("you did not change any data"));
+    }
+
+    @Test
+    public void searchTasksByStateAndPriority() throws Exception {
+        long toDoId = 2;
+        String url = "/api/todos/" + toDoId + "/tasks/search";
+        String state = "started";
+        String priority = "medium";
+        int page = 0;
+        int size = 2;
+
+        TaskSearchDto taskSearchDto = new TaskSearchDto(state, priority, page, size);
+        Pageable paging = PageRequest.of(page, size);
+
+        List<TaskDetailsDto> taskDetailsDtos = taskRepository
+                .findByPriorityAndStateAndToDoDataId(priority, state, toDoId, paging).stream()
+                .map(TaskDetailsDto::new)
+                .toList();
+
+        getHttpRequest(HttpMethod.POST, url, taskSearchDto)
+                .andExpect(status().isOk())
+                .andExpect(taskData("$[0]", taskDetailsDtos.get(0)))
+                .andExpect(taskData("$[1]", taskDetailsDtos.get(1)));
+    }
 
     private <T> ResultActions getHttpRequest(
             Function<String, MockHttpServletRequestBuilder> httpMethod, String url, T body) throws Exception {
@@ -232,7 +304,7 @@ public class TaskControllerTests {
                 MockMvcResultMatchers.jsonPath(prefix + ".title").value(taskDetailsDto.getTitle()),
                 MockMvcResultMatchers.jsonPath(prefix + ".state").value(taskDetailsDto.getState()),
                 MockMvcResultMatchers.jsonPath(prefix + ".priority").value(taskDetailsDto.getPriority()),
-                MockMvcResultMatchers.jsonPath(prefix + ".updated_at").value(taskDetailsDto.getUpdatedAt().toString()),
-                MockMvcResultMatchers.jsonPath(prefix + ".todo_id").value(taskDetailsDto.getTodoId()));
+                MockMvcResultMatchers.jsonPath(prefix + ".updatedAt").value(taskDetailsDto.getUpdatedAt().toString()),
+                MockMvcResultMatchers.jsonPath(prefix + ".toDoId").value(taskDetailsDto.getToDoId()));
     }
 }

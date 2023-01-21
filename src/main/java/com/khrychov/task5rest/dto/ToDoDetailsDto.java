@@ -10,7 +10,7 @@ import lombok.Value;
 
 
 @Value
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 @AllArgsConstructor
 @Getter
 public class ToDoDetailsDto {

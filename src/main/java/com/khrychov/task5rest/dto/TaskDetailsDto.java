@@ -8,7 +8,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Value
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 @Getter
 public class TaskDetailsDto {
 
@@ -22,7 +22,7 @@ public class TaskDetailsDto {
 
     LocalDateTime updatedAt;
 
-    Long todoId;
+    Long toDoId;
 
     public TaskDetailsDto(TaskData taskData) {
         this.id = taskData.getId();
@@ -30,6 +30,6 @@ public class TaskDetailsDto {
         this.state = taskData.getState();
         this.priority = taskData.getPriority();
         this.updatedAt = taskData.getUpdatedAt();
-        this.todoId = taskData.getToDoData().getId();
+        this.toDoId = taskData.getToDoData().getId();
     }
 }
